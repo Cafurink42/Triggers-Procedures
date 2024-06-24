@@ -1,0 +1,49 @@
+create table produto (
+  	codProduto		SERIAL 			primary key,
+    Nome			varchar(50)		NOT null,
+    Preco			numeric (10,2)	not null
+ );
+ 
+create table venda (
+  	NroVenda		SERIAL 		primary key,
+    DATA			date		NOT null,
+    TotalVenda   	numeric (10,2)	default 0.00 not null
+ );
+ 
+ create table itens_venda (
+    NroVenda		INTEGER			not null,
+  	codProduto		INTEGER			not null,
+    Qtdade			INTEGER			not null,
+    PrecoVenda		numeric (10,2)	not null
+ );
+
+CREATE OR REPLACE FUNCTION f_TotalVenda () 
+RETURNS trigger as $$
+begin 
+     update venda
+        set TotalVenda = Totalvenda + (NEW.Qtdade * NEW.Precovenda)
+        where venda.Nrovenda = NEW.Nrovenda;
+return new; 
+end; 
+$$ language 'plpgsql';
+
+
+CREATE TRIGGER tg_totalVenda
+BEFORE INSERT 
+ON ITENS_VENDA
+for each row execute procedure f_totalVenda(); 
+
+insert into produto (nome, preco) values ('Borracha', 4.50);
+insert into produto (nome, preco) values ('Caneta azul', 2.50);
+insert into produto (nome, preco) values ('Caneta vermelha', 2.50);
+insert into produto (nome, preco) values ('Estojo', 25.00);
+insert into produto (nome, preco) values ('Lapis', 1.50);
+  
+insert into venda (Data, Totalvenda) values (current_date, 0.00);
+insert into venda (Data, Totalvenda) values (current_date, 0.00);
+
+insert into itens_venda values (1, 1, 2, 2);
+select * from venda;
+
+insert into itens_venda values (2, 4, 3, 3.00);
+select * from venda;
